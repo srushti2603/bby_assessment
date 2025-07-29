@@ -1,44 +1,44 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
-import { useRouter } from 'next/navigation'
+import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { useRouter } from "next/navigation";
 
 export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true)
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [username, setUsername] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const router = useRouter()
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [fullName, setFullName] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
-      })
+      });
 
-      if (error) throw error
-      router.push('/')
+      if (error) throw error;
+      router.push("/");
     } catch (error) {
-      const err = error as { message: string }
-      setError(err.message)
+      const err = error as { message: string };
+      setError(err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
       const { error } = await supabase.auth.signUp({
@@ -50,17 +50,17 @@ export default function AuthPage() {
             full_name: fullName,
           },
         },
-      })
+      });
 
-      if (error) throw error
-      router.push('/')
+      if (error) throw error;
+      router.push("/");
     } catch (error) {
-      const err = error as { message: string }
-      setError(err.message)
+      const err = error as { message: string };
+      setError(err.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -70,11 +70,14 @@ export default function AuthPage() {
             Instagram Clone
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            {isLogin ? 'Sign in to your account' : 'Create a new account'}
+            {isLogin ? "Sign in to your account" : "Create a new account"}
           </p>
         </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={isLogin ? handleLogin : handleSignup}>
+
+        <form
+          className="mt-8 space-y-6"
+          onSubmit={isLogin ? handleLogin : handleSignup}
+        >
           {error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
               {error}
@@ -110,7 +113,7 @@ export default function AuthPage() {
                 </div>
               </>
             )}
-            
+
             <div>
               <input
                 id="email"
@@ -118,14 +121,14 @@ export default function AuthPage() {
                 type="email"
                 required
                 className={`appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 ${
-                  isLogin ? 'rounded-t-md' : ''
+                  isLogin ? "rounded-t-md" : ""
                 } focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm`}
                 placeholder="Email address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            
+
             <div>
               <input
                 id="password"
@@ -146,7 +149,7 @@ export default function AuthPage() {
               disabled={loading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              {loading ? 'Loading...' : (isLogin ? 'Sign in' : 'Sign up')}
+              {loading ? "Loading..." : isLogin ? "Sign in" : "Sign up"}
             </button>
           </div>
 
@@ -156,11 +159,13 @@ export default function AuthPage() {
               onClick={() => setIsLogin(!isLogin)}
               className="text-indigo-600 hover:text-indigo-500"
             >
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+              {isLogin
+                ? "Don't have an account? Sign up"
+                : "Already have an account? Sign in"}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }
