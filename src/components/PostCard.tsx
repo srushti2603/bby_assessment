@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { Heart, MessageCircle, Share, Bookmark, BookmarkCheck } from 'lucide-react'
 import Image from 'next/image'
 
-interface Post {
+export interface Post {
   id: string
   user_id: string
   caption: string
@@ -108,7 +108,7 @@ export default function PostCard({ post, currentUser, onUpdate }: PostCardProps)
       setBookmarkId(null)
     } else {
       // Bookmark
-      const { data, error } = await supabase.from('bookmarks').insert({
+      const { data } = await supabase.from('bookmarks').insert({
         user_id: currentUser.id,
         post_id: post.id
       }).select('id').single()

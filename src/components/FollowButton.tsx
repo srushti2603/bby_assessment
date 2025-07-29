@@ -1,78 +1,80 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
-import { User } from '@supabase/supabase-js'
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
+import { User } from "@supabase/supabase-js";
 
 interface FollowButtonProps {
-  currentUser: User
-  targetUserId: string
-  onFollowChange?: () => void
+  currentUser: User;
+  targetUserId: string;
+  onFollowChange?: () => void;
 }
 
-export default function FollowButton({ currentUser, targetUserId, onFollowChange }: FollowButtonProps) {
-  const [isFollowing, setIsFollowing] = useState(false)
-  const [loading, setLoading] = useState(false)
+export default function FollowButton({
+  currentUser,
+  targetUserId,
+  onFollowChange,
+}: FollowButtonProps) {
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    checkFollowStatus()
-  }, [currentUser.id, targetUserId])
+    checkFollowStatus();
+  }, [currentUser.id, targetUserId]);
 
   const checkFollowStatus = async () => {
     try {
       const { data, error } = await supabase
-        .from('follows')
-        .select('id')
-        .eq('follower_id', currentUser.id)
-        .eq('following_id', targetUserId)
-        .single()
+        .from("follows")
+        .select("id")
+        .eq("follower_id", currentUser.id)
+        .eq("following_id", targetUserId)
+        .single();
 
-      if (error && error.code !== 'PGRST116') {
-        throw error
+      if (error && error.code !== "PGRST116") {
+        throw error;
       }
 
-      setIsFollowing(!!data)
+      setIsFollowing(!!data);
     } catch (error) {
-      console.error('Error checking follow status:', error)
+      console.error("Error checking follow status:", error);
     }
-  }
+  };
 
   const handleFollow = async () => {
-    if (loading) return
-    setLoading(true)
+    if (loading) return;
+    setLoading(true);
 
     try {
       if (isFollowing) {
         const { error } = await supabase
-          .from('follows')
+          .from("follows")
           .delete()
-          .eq('follower_id', currentUser.id)
-          .eq('following_id', targetUserId)
+          .eq("follower_id", currentUser.id)
+          .eq("following_id", targetUserId);
 
-        if (error) throw error
-        setIsFollowing(false)
+        if (error) throw error;
+        setIsFollowing(false);
       } else {
-        const { error } = await supabase
-          .from('follows')
-          .insert({
-            follower_id: currentUser.id,
-            following_id: targetUserId
-          })
+        const { error } = await supabase.from("follows").insert({
+          follower_id: currentUser.id,
+          following_id: targetUserId,
+        });
 
-        if (error) throw error
-        setIsFollowing(true)
+        if (error) throw error;
+        setIsFollowing(true);
       }
 
-      onFollowChange?.()
+      onFollowChange?.();
     } catch (error) {
-      console.error('Error toggling follow:', error)
+      console.error("Error toggling follow:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   if (currentUser.id === targetUserId) {
-    return null
+    return null;
   }
 
   return (
@@ -81,11 +83,11 @@ export default function FollowButton({ currentUser, targetUserId, onFollowChange
       disabled={loading}
       className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
         isFollowing
-          ? 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          : 'bg-blue-500 text-white hover:bg-blue-600'
+          ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+          : "bg-blue-500 text-white hover:bg-blue-600"
       } disabled:opacity-50 disabled:cursor-not-allowed`}
     >
-      {loading ? 'Loading...' : isFollowing ? 'Following' : 'Follow'}
+      {loading ? "Loading..." : isFollowing ? "Following" : "Follow"}
     </button>
-  )
+  );
 }

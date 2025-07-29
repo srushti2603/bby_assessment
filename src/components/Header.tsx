@@ -1,9 +1,8 @@
 'use client'
 
-import { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { Camera, Heart, Home, Search, User as UserIcon, Bookmark } from 'lucide-react'
+import { Camera, Heart, User as UserIcon, Bookmark } from 'lucide-react'
 
 interface HeaderProps {
   onCreatePost: () => void
@@ -11,11 +10,6 @@ interface HeaderProps {
 
 export default function Header({ onCreatePost }: HeaderProps) {
   const router = useRouter()
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/auth')
-  }
 
   return (
     <header className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50">

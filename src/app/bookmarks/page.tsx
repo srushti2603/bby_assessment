@@ -12,7 +12,7 @@ export default function BookmarksPage() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data, error } = await supabase.auth.getUser()
+      const { data } = await supabase.auth.getUser()
       if (data?.user) setUser(data.user)
       else router.push('/auth')
     }

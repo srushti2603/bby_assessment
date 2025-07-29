@@ -1,26 +1,33 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { User } from '@supabase/supabase-js'
-import PostCard from './PostCard'
+import PostCard, { Post } from './PostCard'
 
 interface BookmarkViewProps {
   currentUser: User
 }
 
 export default function BookmarkView({ currentUser }: BookmarkViewProps) {
-  const [bookmarkedPosts, setBookmarkedPosts] = useState<any[]>([])
+  const [bookmarkedPosts, setBookmarkedPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchBookmarks = async () => {
       setLoading(true)
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('bookmarks')
         .select('post_id, posts(*)')
         .eq('user_id', currentUser.id)
         .order('created_at', { ascending: false })
       if (data) {
-        setBookmarkedPosts(data.map((b: any) => b.posts))
+        // Defensive: posts could be null, array, or object
+        setBookmarkedPosts(
+          data
+            .map((b: { posts: Post | Post[] | null }) =>
+              Array.isArray(b.posts) ? b.posts[0] : b.posts
+            )
+            .filter((p): p is Post => !!p)
+        )
       }
       setLoading(false)
     }

@@ -155,3 +155,5 @@ export default function CreatePost({
     </div>
   );
 }
+
+// Consider replacing <img> with <Image /> from next/image for best practices, but this is not a build blocker.

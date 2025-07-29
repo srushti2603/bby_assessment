@@ -27,8 +27,9 @@ export default function AuthPage() {
 
       if (error) throw error
       router.push('/')
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error) {
+      const err = error as { message: string }
+      setError(err.message)
     } finally {
       setLoading(false)
     }
@@ -53,8 +54,9 @@ export default function AuthPage() {
 
       if (error) throw error
       router.push('/')
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error) {
+      const err = error as { message: string }
+      setError(err.message)
     } finally {
       setLoading(false)
     }
