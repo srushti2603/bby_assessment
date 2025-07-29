@@ -1,7 +1,10 @@
-import type { NextConfig } from "next";
+// next.config.js
 
-const nextConfig: NextConfig = {
-  /* config options here */
-};
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  images: {
+    domains: [process.env.NEXT_PUBLIC_SUPABASE_IMAGE_DOMAIN], // Use env variable for Supabase domain
+  },
+}
 
-export default nextConfig;
+module.exports = nextConfig

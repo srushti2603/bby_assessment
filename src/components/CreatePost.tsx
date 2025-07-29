@@ -1,73 +1,74 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { User } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
-import { X, Upload } from 'lucide-react'
+import { useState } from "react";
+import { User } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabase";
+import { X, Upload } from "lucide-react";
 
 interface CreatePostProps {
-  user: User
-  onClose: () => void
-  onPostCreated: () => void
+  user: User;
+  onClose: () => void;
+  onPostCreated: () => void;
 }
 
-export default function CreatePost({ user, onClose, onPostCreated }: CreatePostProps) {
-  const [caption, setCaption] = useState('')
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState(false)
+export default function CreatePost({
+  user,
+  onClose,
+  onPostCreated,
+}: CreatePostProps) {
+  const [caption, setCaption] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      setImageFile(file)
-      const reader = new FileReader()
+      setImageFile(file);
+      const reader = new FileReader();
       reader.onload = (e) => {
-        setImagePreview(e.target?.result as string)
-      }
-      reader.readAsDataURL(file)
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!imageFile) return
+    e.preventDefault();
+    if (!imageFile) return;
 
-    setIsUploading(true)
-    
+    setIsUploading(true);
+    console.log("Current user:", user);
+
     try {
-      const fileExt = imageFile.name.split('.').pop()
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`
-      const filePath = `posts/${fileName}`
+      const fileExt = imageFile.name.split(".").pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `posts/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('images')
-        .upload(filePath, imageFile)
+        .from("images")
+        .upload(filePath, imageFile);
 
-      if (uploadError) throw uploadError
+      if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('images')
-        .getPublicUrl(filePath)
+      const { data } = supabase.storage.from("images").getPublicUrl(filePath);
 
-      const { error: insertError } = await supabase
-        .from('posts')
-        .insert({
-          user_id: user.id,
-          caption,
-          image_url: publicUrl
-        })
+      const { error: insertError } = await supabase.from("posts").insert({
+        user_id: user.id,
+        caption,
+        image_url: data.publicUrl,
+      });
 
-      if (insertError) throw insertError
+      if (insertError) throw insertError;
 
-      onPostCreated()
+      onPostCreated();
     } catch (error) {
-      console.error('Error creating post:', error)
-      alert('Failed to create post. Please try again.')
+      console.error("Error creating post:", error);
+      alert("Failed to create post. Please try again.");
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -82,12 +83,12 @@ export default function CreatePost({ user, onClose, onPostCreated }: CreatePostP
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4">
-          <div className="mb-4">
+        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          <div>
             <label className="block text-sm font-medium mb-2">
               Select Image
             </label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center relative">
               {imagePreview ? (
                 <div className="relative">
                   <img
@@ -98,8 +99,8 @@ export default function CreatePost({ user, onClose, onPostCreated }: CreatePostP
                   <button
                     type="button"
                     onClick={() => {
-                      setImageFile(null)
-                      setImagePreview(null)
+                      setImageFile(null);
+                      setImagePreview(null);
                     }}
                     className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
                   >
@@ -107,24 +108,23 @@ export default function CreatePost({ user, onClose, onPostCreated }: CreatePostP
                   </button>
                 </div>
               ) : (
-                <div>
+                <label htmlFor="image-upload" className="cursor-pointer block">
                   <Upload className="w-12 h-12 mx-auto text-gray-400 mb-2" />
                   <p className="text-gray-500">Click to upload an image</p>
-                </div>
+                </label>
               )}
               <input
+                id="image-upload"
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="hidden"
               />
             </div>
           </div>
 
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-2">
-              Caption
-            </label>
+          <div>
+            <label className="block text-sm font-medium mb-2">Caption</label>
             <textarea
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
@@ -147,11 +147,11 @@ export default function CreatePost({ user, onClose, onPostCreated }: CreatePostP
               disabled={!imageFile || isUploading}
               className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isUploading ? 'Posting...' : 'Post'}
+              {isUploading ? "Posting..." : "Post"}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }
