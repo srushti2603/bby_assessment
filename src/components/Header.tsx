@@ -3,7 +3,7 @@
 import { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
-import { Camera, Heart, Home, Search, User as UserIcon } from 'lucide-react'
+import { Camera, Heart, Home, Search, User as UserIcon, Bookmark } from 'lucide-react'
 
 interface HeaderProps {
   onCreatePost: () => void
@@ -40,6 +40,14 @@ export default function Header({ onCreatePost }: HeaderProps) {
               className="p-2 hover:bg-gray-100 rounded-full"
             >
               <UserIcon className="w-6 h-6" />
+            </button>
+
+            <button
+              onClick={() => router.push('/bookmarks')}
+              className="p-2 hover:bg-gray-100 rounded-full"
+              aria-label="Bookmarks"
+            >
+              <Bookmark className="w-6 h-6" />
             </button>
           </div>
         </div>

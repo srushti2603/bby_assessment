@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { User } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
-import { Heart, MessageCircle, Share } from 'lucide-react'
+import { Heart, MessageCircle, Share, Bookmark, BookmarkCheck } from 'lucide-react'
 import Image from 'next/image'
 
 interface Post {
@@ -29,9 +29,31 @@ interface PostCardProps {
 export default function PostCard({ post, currentUser, onUpdate }: PostCardProps) {
   const [comment, setComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isBookmarked, setIsBookmarked] = useState(false)
+  const [bookmarkId, setBookmarkId] = useState<string | null>(null)
   
-  const isLiked = post.likes.some(like => like.user_id === currentUser.id)
-  const likesCount = post.likes.length
+  // Defensive: likes may be undefined
+  const isLiked = Array.isArray(post.likes) && post.likes.some(like => like.user_id === currentUser.id)
+  const likesCount = Array.isArray(post.likes) ? post.likes.length : 0
+
+  useEffect(() => {
+    const fetchBookmark = async () => {
+      const { data, error } = await supabase
+        .from('bookmarks')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .eq('post_id', post.id)
+        .single()
+      if (data) {
+        setIsBookmarked(true)
+        setBookmarkId(data.id)
+      } else {
+        setIsBookmarked(false)
+        setBookmarkId(null)
+      }
+    }
+    fetchBookmark()
+  }, [currentUser.id, post.id])
 
   const handleLike = async () => {
     try {
@@ -78,6 +100,26 @@ export default function PostCard({ post, currentUser, onUpdate }: PostCardProps)
     }
   }
 
+  const handleBookmark = async () => {
+    if (isBookmarked && bookmarkId) {
+      // Unbookmark
+      await supabase.from('bookmarks').delete().eq('id', bookmarkId)
+      setIsBookmarked(false)
+      setBookmarkId(null)
+    } else {
+      // Bookmark
+      const { data, error } = await supabase.from('bookmarks').insert({
+        user_id: currentUser.id,
+        post_id: post.id
+      }).select('id').single()
+      if (data) {
+        setIsBookmarked(true)
+        setBookmarkId(data.id)
+      }
+    }
+    onUpdate()
+  }
+
   const formatTimeAgo = (dateString: string) => {
     const now = new Date()
     const postDate = new Date(dateString)
@@ -93,7 +135,7 @@ export default function PostCard({ post, currentUser, onUpdate }: PostCardProps)
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div className="flex items-center p-4 border-b">
         <div className="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center mr-3">
-          {post.profiles.avatar_url ? (
+          {post.profiles && post.profiles.avatar_url ? (
             <Image
               src={post.profiles.avatar_url}
               alt={post.profiles.username}
@@ -103,12 +145,12 @@ export default function PostCard({ post, currentUser, onUpdate }: PostCardProps)
             />
           ) : (
             <span className="text-sm font-medium">
-              {post.profiles.username[0].toUpperCase()}
+              {post.profiles && post.profiles.username ? post.profiles.username[0].toUpperCase() : '?'}
             </span>
           )}
         </div>
         <div>
-          <p className="font-medium">{post.profiles.username}</p>
+          <p className="font-medium">{post.profiles && post.profiles.username ? post.profiles.username : 'Unknown'}</p>
           <p className="text-sm text-gray-500">{formatTimeAgo(post.created_at)}</p>
         </div>
       </div>
@@ -137,6 +179,13 @@ export default function PostCard({ post, currentUser, onUpdate }: PostCardProps)
             <button className="p-1 text-gray-600">
               <Share className="w-6 h-6" />
             </button>
+            <button
+              onClick={handleBookmark}
+              className={`p-1 ${isBookmarked ? 'text-blue-500' : 'text-gray-600'}`}
+              aria-label={isBookmarked ? 'Unbookmark' : 'Bookmark'}
+            >
+              {isBookmarked ? <BookmarkCheck className="w-6 h-6" /> : <Bookmark className="w-6 h-6" />}
+            </button>
           </div>
         </div>
 
@@ -148,16 +197,16 @@ export default function PostCard({ post, currentUser, onUpdate }: PostCardProps)
 
         {post.caption && (
           <p className="text-sm mb-2">
-            <span className="font-medium mr-2">{post.profiles.username}</span>
+            <span className="font-medium mr-2">{post.profiles && post.profiles.username ? post.profiles.username : 'Unknown'}</span>
             {post.caption}
           </p>
         )}
 
-        {post.comments.length > 0 && (
+        {Array.isArray(post.comments) && post.comments.length > 0 && (
           <div className="space-y-1 mb-2">
             {post.comments.map((comment) => (
               <p key={comment.id} className="text-sm">
-                <span className="font-medium mr-2">{comment.profiles.username}</span>
+                <span className="font-medium mr-2">{comment.profiles && comment.profiles.username ? comment.profiles.username : 'Unknown'}</span>
                 {comment.content}
               </p>
             ))}
