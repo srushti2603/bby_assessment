@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
 import Link from "next/link";
+import type { Post } from "@/components/PostCard";
 
 interface BookmarkViewProps {
   currentUser: User;
 }
 
+type BookmarkRow = {
+  posts: Post[] | Post | null;
+};
+
 export default function BookmarkView({ currentUser }: BookmarkViewProps) {
-  const [bookmarkedPosts, setBookmarkedPosts] = useState<any[]>([]);
+  const [bookmarkedPosts, setBookmarkedPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,17 +24,17 @@ export default function BookmarkView({ currentUser }: BookmarkViewProps) {
         .select("post_id, posts(*, profiles:profiles(*))")
         .eq("user_id", currentUser.id)
         .order("created_at", { ascending: false });
+
       if (data) {
-        setBookmarkedPosts(
-          data
-            .map((b: { posts: any | any[] | null }) =>
-              Array.isArray(b.posts) ? b.posts[0] : b.posts
-            )
-            .filter((p): p is any => !!p)
+        const posts = (data as BookmarkRow[]).flatMap((b) =>
+          Array.isArray(b.posts) ? b.posts : b.posts ? [b.posts] : []
         );
+        setBookmarkedPosts(posts);
       }
+
       setLoading(false);
     };
+
     fetchBookmarks();
   }, [currentUser.id]);
 

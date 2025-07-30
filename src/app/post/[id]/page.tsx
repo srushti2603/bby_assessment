@@ -3,15 +3,19 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import Image from "next/image";
-import PostCard from "@/components/PostCard";
+// import PostCard from "@/components/PostCard";
 import { User } from "@supabase/supabase-js";
 import { ArrowLeft } from "lucide-react";
+import type { Post } from "@/components/PostCard";
+import PostCard from "@/components/PostCard";
 
 export default function PostDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { id } = params as { id: string };
-  const [post, setPost] = useState<any>(null);
+  // const [post, setPost] = useState<any>(null);
+  const [post, setPost] = useState<Post | null>(null);
+
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
